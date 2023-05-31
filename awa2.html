@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <script src="components/bar.js"></script>
+
+  <script defer src="components/checkbox.js"></script>
+  <script defer src="components/radiobutton.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+
+  <title>AWA2 Vis Sys</title>
+
+  <style>
+
+  </style>
+
+</head>
+
+<body>
+  
+
+  <div id="full">
+    <div id="left">
+      <div id="titlebox">
+
+        <div class="container-fluid" style="margin:30px ; font-size: 30px;">
+          <span class="navbar-brand mb-0 h1"><strong>AWA2</strong><br> <strong>Visualization</strong><br> <strong>System</strong>></span>
+        </div>
+
+      </div>
+      <div id="attribute">
+        <p style="display:flex; justify-content: center; font-size: 22px; margin-top: 15px"><strong>Attributes</strong></p>
+        <form id="checkboxForm">
+          <table style="margin: 0px auto">
+            <tbody id="checkboxGrid"></tbody>
+          </table>
+        </form>
+      </div>
+    </div>
+
+    <div id="right">
+      <div id="classes">
+        <p style="display:flex; justify-content: center; font-size: 22px"><strong>Classes</strong></p>
+        <form id="radiobuttonForm">
+          <table style="margin: 0px auto">
+            <tbody id="radiobuttonGrid"></tbody>
+          </table>
+        </form>
+      </div>
+      <div id="information">
+        <div id="parallel" style="display:flex; justify-content: center; ">
+          <svg id="StrengthBar"></svg>
+        </div>
+        <div id="graph">
+          <div class="slidecontainer" style="display:flex; justify-content: center;">
+            <input type="range" min="60" max="85" value="69" id="similarity" style="width:500px; margin-top:10px">
+          </div>
+
+          <p style="display:flex; justify-content: center; font-size: 12px">Similarity= <span id="value_slider"></span></p>
+
+          <div class="slidecontainer" style="display:flex; justify-content: center;">
+            <input type="range" min="40" max="200" value="60" id="strength" style="width:500px; margin-top:10px">
+          </div>
+          <p style="display:flex; justify-content: center; font-size: 12px">Strength= <span id="value_strength"></span></p>
+
+          <div style="display:flex; justify-content: center;">
+            <svg id="chart" style="border-style: solid; border-color: grey; border-width: 3px;"></svg>
+          </div>
+        </div>
+
+
+
+      </div>
+    </div>
+
+
+  </div>
+
+
+
+
+  </main>
+
+  <script>
+    
+
+    function classcheck_init(){
+      const checkboxes = document.getElementsByClassName("awaclass");
+      for(var i = 0; i < checkboxes.length; i++){
+        checkboxes[i].addEventListener("change", function(){
+          let active = false;
+          if(this.checked){
+            console.log(this.id);
+            active = true;
+          }
+        graph.updateNode();
+        graph.updateSimulation();
+        });
+      }
+    }
+
+    function attrcheck_init(){
+      const checkboxes = document.getElementsByClassName("awaattr");
+      for(var i = 0; i < checkboxes.length; i++){
+        checkboxes[i].addEventListener("change", function(){
+          
+        graph.updateNode();
+        graph.updateSimulation();
+        });
+      }
+    }
+
+
+    var slider = document.getElementById("similarity");
+    var strength = document.getElementById("strength");
+    var output_slider = document.getElementById("value_slider");
+    var output_strength = document.getElementById("value_strength");
+    output_slider.innerHTML = slider.value;
+    output_strength.innerHTML = strength.value;
+
+    slider.oninput = function () {
+      output_slider.innerHTML = this.value;
+    };
+    strength.oninput = function () {
+      output_strength.innerHTML = this.value;
+    };
+    slider.addEventListener('mouseup', function () {
+
+      var svg = d3.select('#chart').selectAll('*').remove();
+      var svg = d3.select('#StrengthBar').selectAll('*').remove();
+      updategraph(slider.value);
+      
+    });
+    strength.addEventListener('mouseup', function () {
+      var svg = d3.select('#chart').selectAll('*').remove();
+      var svg = d3.select('#StrengthBar').selectAll('*').remove();
+      updategraph(slider.value);
+      
+    });
+    updategraph(slider.value);
+
+    //import {chart} from "./components/graph.js";
+    async function readClassesFile(predicates) {
+      // Get the contents of the file.
+      const response = await fetch("classes.txt").then(response => response.text()).then(data => {
+        ;
+
+        // Split the data into lines.
+        const lines = data.split("\n");
+
+        // Create an array of objects to represent the classes.
+        const classes = [];
+        for (let i = 0; i < lines.length; i++) {
+          const parts = lines[i].split("\t");
+          // Calculate the similarity between the two classes.
+          // if (document.getElementById(parts[1]).checked == true){
+
+          // }
+          classes.push({
+            id: parts[1],
+            level: 1,
+            group: 0,
+            label: parts[1],
+            attr: predicates[i],
+            activated: true
+          });
+
+
+        }
+        
+        return classes;
+      });
+
+
+      return response;
+    };
+    
+    async function readPredicatesFile() {
+      // Get the contents of the file.
+      const response = await fetch("predicate-matrix-binary.txt").then(response => response.text()).then(data => {
+        const lines = data.split("\n");
+
+        // Create an array of objects to represent the predicates.
+        const predicates = lines.map((line) => {
+          const parts = line.split(" ");
+          return {
+            value: parts
+          };
+        });
+        return predicates;
+      });
+      return response;
+      // Split the data into lines.
+
+    }
+    function calculateSimilarity(class1, class2) {
+      // Count the number of predicates that are shared by the two classes.
+      let count = 0;
+      for (let i = 0; i < class1.length; i++) {
+        if (class1[i] == class2[i]) {
+
+          count++;
+        }
+      }
+
+      // Return the similarity score.
+      return count;
+    }
+
+    function createGraph(predicates, classes, threshold) {
+      // Create an array to store the edges of the graph.
+      const edges = [];
+      // Iterate over all pairs of classes.
+      for (let i = 0; i < classes.length; i++) {
+        for (let j = i + 1; j < classes.length; j++) {
+          // Calculate the similarity between the two classes.
+          const similarity = calculateSimilarity(predicates[i].value, predicates[j].value);
+
+          if (similarity >= threshold) {
+            edges.push({
+              source: classes[i].id,
+              target: classes[j].id,
+              strength: similarity / 85
+            });
+          }
+        }
+      }
+
+      // Return the graph.
+      return edges;
+    }
+    function getNodeSize(nodelist, linklist) {
+      for (let i = 0; i < nodelist.length; i++) {
+        let cnt = 0;
+        for (let j = 0; j < linklist.length; j++) {
+          // Calculate the similarity between the two classes.
+          if (linklist[j].source == nodelist[i].id || linklist[j].target == nodelist[i].id) {
+            cnt += 1;
+          }
+        }
+        nodelist[i].strength = cnt / linklist.length * nodelist.length;
+
+        if (nodelist[i].strength > 6) {
+          nodelist[i].strength = 6;
+        }
+        if (linklist.length == 0) {
+          nodelist[i].strength = 0.5;
+        }
+        cnt = 0;
+
+      }
+      console.log(linklist.length);
+      return nodelist;
+    }
+
+    let graphnodes;
+    let graphlinks;
+    let baseLinks;
+    let baseNodes;
+    async function getGraph(threshold) {
+      const predicates = await readPredicatesFile();
+      const classes = await readClassesFile(predicates);
+      // Create the graph.
+      const graph = createGraph(predicates, classes, threshold);
+      // Print the graph.
+
+      graphnodes = Object.values(classes);
+
+      graphlinks = Object.values(graph);
+
+      graphnodes = getNodeSize(graphnodes, graphlinks);
+      baseLinks = graphlinks;
+      baseNodes = graphnodes;
+
+      return {
+        links: graph,
+        nodes: classes
+      };
+    }
+
+    let width = 750;
+    let height = 500;
+
+    function getNodeXCoordinate(x) {
+        if (x < 20) {
+          return 20;
+        }
+        if (x > width - 20) {
+          return width - 20;
+        }
+        return x;
+        //return Math.max(10, Math.min(width - 10, x))
+      }
+    function getNodeYCoordinate(y) {
+        if (y < 20) {
+          return 20;
+        }
+        if (y > height - 20) {
+          return height - 20;
+        }
+        return y;
+        //return Math.max(20, Math.min(height - 10, y))
+    }
+    class ForceGraph {
+      constructor(width, height, links, nodes) {
+        this.nodes = [...nodes];
+        this.links = [...links];
+        this.width = width;
+        this.height = height;
+        this.initialize();
+      }
+      
+      initialize() {
+        this.svg = d3.select('#chart');
+        this.svg.attr('width', this.width).attr('height', this.height);
+        this.linkElements;
+        this.nodeElements;
+        this.textElements;
+        this.linkGroup = this.svg.append('g').attr('class', 'links')
+        this.nodeGroup = this.svg.append('g').attr('class', 'nodes')
+        this.textGroup = this.svg.append('g').attr('class', 'texts')
+        this.selectedId;
+
+        // simulation setup with all forces
+        this.linkForce = d3
+          .forceLink()
+          .id(function (link) { return link.id })
+          .strength(function (link) { return link.strength })
+
+        this.simulation = d3
+          .forceSimulation()
+          .force('link', this.linkForce)
+          .force('charge', d3.forceManyBody().strength(slider.value * 2 / 3 - strength.value - 100).distanceMax(150))
+          .force('center', d3.forceCenter(this.width / 2, this.height / 2))
+          .force("collide", d3.forceCollide(22));
+        
+
+        this.dragDrop = d3.drag().on('start', (node) => {
+          node.fx = getNodeXCoordinate(node.x)
+          node.fy = getNodeYCoordinate(node.y)
+        }).on('drag', (event, node) => {
+          
+          this.simulation.alphaTarget(0.2).restart()
+          node.fx = getNodeXCoordinate(event.x)
+          node.fy = getNodeYCoordinate(event.y)
+        }).on('end', (event, node) => {
+          if (!event.active) {
+            
+            this.simulation.alphaTarget(0);
+          }
+          node.fx = null;
+          node.fy = null;
+        });
+        console.log('Class initialized');
+      };
+      
+      
+
+        
+
+      selectNode(selectedNode) {
+        if (selectedId === selectedNode.id) {
+          selectedId = undefined
+        } else {
+          selectedId = selectedNode.id
+          
+        }
+        console.log(selectedId);
+      }
+
+      
+
+      // diffing and mutating the data
+
+      updateNode() {
+        const checkboxes = document.getElementsByClassName("awaclass");
+
+        for(let i = 0; i < checkboxes.length; i++){
+          this.nodes[i].activated = true;
+          checkboxes[i].disabled = false;
+        }
+        for(let i = 0; i < checkboxes.length; i++){
+          if(!checkboxes[i].checked){
+            this.nodes[i].activated = false;
+          }
+        }
+        const checkboxes2 = document.getElementsByClassName("awaattr");
+        for(var i = 0; i < checkboxes2.length; i++){
+          
+          if(!checkboxes2[i].checked){
+            
+            for(var j = 0; j < this.nodes.length; j++){
+              if(this.nodes[j].attr.value[i] == '1'){
+                  this.nodes[j].activated = false;
+                  checkboxes[j].disabled = true;
+                }
+              
+            }
+
+          }
+          
+        }
+      }
+      
+      updateGraph() {
+        // links
+        
+        this.linkElements = this.linkGroup.selectAll('line')
+          .data(this.links, function (link) {
+            return link.target.id + link.source.id
+          })
+
+        this.linkElements.exit().remove()
+
+        var linkEnter = this.linkElements
+          .enter().append('line')
+          .attr('stroke-width', 2)
+          .attr('stroke', 'rgba(50, 50, 50, 0.2)')
+
+        this.linkElements = linkEnter.merge(this.linkElements)
+        //tooltips
+        let tooltip = d3
+          .select("body")
+          .append("div")
+          .style("position", "absolute")
+          .style("visibility", "hidden")
+          .style("background-color", "white")
+          .attr("class", "tooltip");
+        let activated = false;
+        let tooltip_in = function (event, d) {
+          if(!activated){
+            activated = true;
+            return tooltip
+            .html('<img class="classimg" src="./AWA2/' + d.id + '/1.jpg">')
+            .style("visibility", "visible")
+            .style("top", event.pageY + "px")
+            .style("left", event.pageX + "px")
+            .style("opacity", 100)
+          }
+          
+        };
+
+        let tooltip_out = function () {
+          activated = false;
+          
+          return tooltip
+            .style("visibility", "hidden");
+        };
+
+        // nodes
+        
+        this.nodeElements = this.nodeGroup.selectAll('circle').remove()
+        
+        this.nodeElements = this.nodeGroup.selectAll('circle')
+          .data(this.nodes, function (node) { return node.id })
+
+        this.nodeElements.exit().remove()
+
+
+        var nodeEnter = this.nodeElements
+          .enter()
+          .append('circle')
+          .attr('r', d => parseInt(d.strength * 3 + 4))
+          .attr('fill', function (node) { 
+            return node.activated ? d3.scaleLinear().domain([0, 6]).range(['blue', 'red'])(node.strength) : 'grey'; })
+          .call(this.dragDrop)
+          .on("mouseover", tooltip_in)
+          .on("mouseout", tooltip_out)
+          ;
+        
+        this.nodeElements = nodeEnter.merge(this.nodeElements)
+
+        // texts
+        this.textElements = this.textGroup.selectAll('text')
+          .data(this.nodes, function (node) { return node.id })
+
+        this.textElements.exit().remove()
+
+        var textEnter = this.textElements
+          .enter()
+          .append('text')
+          .text(function (node) { return node.label })
+          .attr('font-size', 11)
+          .attr('dx', -20)
+          .attr('dy', d => d.strength * (-2) - 7)
+          .style("user-select", "none");
+        
+        this.textElements = textEnter.merge(this.textElements)
+      }
+
+      updateSimulation() {
+        var tooltip = document.getElementsByClassName("tooltip");
+        if (tooltip != undefined || tooltip != null) {
+          if (tooltip.length > 0) {
+            tooltip[0].remove();
+          }
+
+        }
+        this.updateGraph()
+
+        this.simulation.nodes(this.nodes).on('tick', () => {
+
+          this.nodeElements
+            .attr('cx', function (node) { return getNodeXCoordinate(node.x) })
+            .attr('cy', function (node) { return getNodeYCoordinate(node.y) })
+          this.textElements
+            .attr('x', function (node) { return getNodeXCoordinate(node.x) })
+            .attr('y', function (node) { return getNodeYCoordinate(node.y) })
+          this.linkElements
+            .attr('x1', function (link) { return getNodeXCoordinate(link.source.x) })
+            .attr('y1', function (link) { return getNodeYCoordinate(link.source.y) })
+            .attr('x2', function (link) { return getNodeXCoordinate(link.target.x) })
+            .attr('y2', function (link) { return getNodeYCoordinate(link.target.y) })
+        })
+
+        this.simulation.force('link').links(this.links)
+        this.simulation.alphaTarget(0).restart()
+      }
+
+    }
+    
+    
+
+    let graph;
+    let barchart;
+    async function updategraph(sim) {
+      getGraph(sim).then(response => {
+        graph = new ForceGraph(width, height, response.links, response.nodes)
+        graph.updateNode();
+        graph.updateSimulation();
+        classcheck_init();
+        attrcheck_init();
+        barchart = new BarChart(graph.nodes, 330, 650);
+      });
+    }
+   
+
+  </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,93 @@
+body {
+    background: #eee;
+    overflow-y: scroll;
+}
+
+.container {
+    width: 100%;
+    background: white;
+}
+
+
+.classimg{
+    max-height:130px;
+}
+td {
+    padding: 3px;
+    font-size: 9px;
+    vertical-align: middle;
+}
+#full{
+    width: 1600px;
+    height: 900px;
+    border: 1px;
+    padding: 20px;
+    margin: 0 auto;
+}
+
+#left{
+    width: 25%;
+    height: 100%;
+    float: left;
+}
+#right{
+    width: 75%;
+    height: 100%;
+    float: left;
+}
+#titlebox{
+    width: 100%;
+    height: 25%;
+    border-style: solid;
+    border-color: gray;
+    border-width: 4px 2px 2px 4px;
+}
+#attribute{
+    width: 100%;
+    height: 75%;
+    border-style: solid;
+    border-color: gray;
+    border-width: 2px 2px 4px 4px;
+}
+#classes{
+    width: 100%;
+    height: 25%;
+    border-style: solid;
+    border-color: gray;
+    border-width: 4px 4px 2px 2px;
+}
+#information{
+    width: 100%;
+    height: 75%;
+    border-style: solid;
+    border-color: gray;
+    border-width: 2px 4px 4px 2px;
+}
+#parallel{
+    width: 30%;
+    height: 100%;
+    float: left;
+    
+}
+#graph{
+    width: 70%;
+    height: 100%;
+    float: left;
+}
+.custom-checkbox {
+    width: 17px; /* Increase the width as desired */
+    height: 17px; /* Increase the height as desired */
+    vertical-align: middle;
+}
+.awaclass {
+    width: 17px; /* Increase the width as desired */
+    height: 17px; /* Increase the height as desired */
+    vertical-align: middle;
+}
+.tooltip {
+    fill: white;
+    font-family: sans-serif;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid grey;
+}
